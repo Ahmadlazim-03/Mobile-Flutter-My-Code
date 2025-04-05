@@ -1,7 +1,7 @@
 // password_success_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'sign_in_screen.dart';
+import '../sign_in_screen.dart';
 
 class PasswordSuccessScreen extends StatelessWidget {
   const PasswordSuccessScreen({Key? key}) : super(key: key);

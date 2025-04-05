@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'home_screen.dart';
+import '../home/home_screen.dart';
 import 'sign_up_screen.dart';
-import 'forgot_password_screen.dart';
+import 'forgot_password/forgot_password_screen.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({Key? key}) : super(key: key);
