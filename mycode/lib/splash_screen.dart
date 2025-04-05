@@ -1,59 +1,65 @@
-// lib/splash_screen.dart (with fine-tuning)
-import 'dart:math';
 import 'package:flutter/material.dart';
-import 'form/login_page.dart'; // Import LoginPage
+import 'package:flutter/services.dart';
+import 'dart:async';
+import 'onboarding_screen.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+  const SplashScreen({Key? key}) : super(key: key);
 
   @override
-  // ignore: library_private_types_in_public_api
   _SplashScreenState createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
-    with SingleTickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
+  late Animation<double> _fadeInAnimation;
   late Animation<double> _scaleAnimation;
-  late Animation<double> _fadeAnimation;
+  late Animation<double> _progressAnimation;
 
   @override
   void initState() {
     super.initState();
-
-    // Initialize the animation controller
+    
+    // Set system UI overlay style to match the design
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+    ));
+    
+    // Initialize animations
     _controller = AnimationController(
-      duration: const Duration(seconds: 3),
+      duration: const Duration(milliseconds: 2500),
       vsync: this,
     );
-
-    // Define the scale animation for the white circle
-    _scaleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+    
+    _fadeInAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.0, 0.6, curve: Curves.easeOutCubic), // Smoother scaling
+        curve: const Interval(0.0, 0.5, curve: Curves.easeIn),
       ),
     );
-
-    // Define the fade animation for the logo (delayed)
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+    
+    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.4, 0.8, curve: Curves.easeIn),
+        curve: const Interval(0.0, 0.5, curve: Curves.easeOutBack),
       ),
     );
-
-    // Start the animation
+    
+    _progressAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.6, 1.0, curve: Curves.easeInOut),
+      ),
+    );
+    
     _controller.forward();
-
-    // Navigate to LoginPage after the animation completes
-    _controller.addStatusListener((status) {
-      if (status == AnimationStatus.completed) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const LoginPage()),
-        );
-      }
+    
+    // Navigate to onboarding screen after animation completes
+    Timer(const Duration(milliseconds: 3000), () {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const OnboardingScreen()),
+      );
     });
   }
 
@@ -65,43 +71,107 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    // Get the screen dimensions
-    final screenSize = MediaQuery.of(context).size;
-    final screenWidth = screenSize.width;
-    final screenHeight = screenSize.height;
-
-    // Calculate the diagonal of the screen and make it slightly larger
-    final screenDiagonal = sqrt(screenWidth * screenWidth + screenHeight * screenHeight) * 1.2;
-
     return Scaffold(
-      backgroundColor: const Color(0xFF4285F4), // Blue background
-      body: Center(
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            // White circle that scales up to cover the entire screen
-            ScaleTransition(
-              scale: _scaleAnimation,
-              child: Container(
-                width: screenDiagonal,
-                height: screenDiagonal,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
+      backgroundColor: const Color(0xFF54408C), // Purple background color from design
+      body: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) {
+          return Stack(
+            children: [
+              // Centered logo and text
+              Center(
+                child: FadeTransition(
+                  opacity: _fadeInAnimation,
+                  child: ScaleTransition(
+                    scale: _scaleAnimation,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Plus/Cross logo
+                        SizedBox(
+                          width: 40,
+                          height: 40,
+                          child: CustomPaint(
+                            painter: CrossPainter(color: Colors.white),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        // MyCode text
+                        const Text(
+                          'MyCode.',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 36,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
-            ),
-            // MyCode logo (fades in after the circle scales)
-            FadeTransition(
-              opacity: _fadeAnimation,
-              child: Image.asset(
-                'assets/mycodelogo.png',
-                width: 200,
+              // Progress indicator at bottom
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 40,
+                child: Center(
+                  child: SizedBox(
+                    width: 150,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: LinearProgressIndicator(
+                        value: _progressAnimation.value,
+                        backgroundColor: Colors.white.withOpacity(0.2),
+                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                        minHeight: 3,
+                      ),
+                    ),
+                  ),
+                ),
               ),
-            ),
-          ],
-        ),
+            ],
+          );
+        },
       ),
     );
   }
+}
+
+// Custom painter for the cross/plus logo
+class CrossPainter extends CustomPainter {
+  final Color color;
+  
+  CrossPainter({required this.color});
+  
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+    
+    // Vertical rectangle
+    canvas.drawRoundRect(
+      Rect.fromLTWH(size.width * 0.35, size.height * 0.1, size.width * 0.3, size.height * 0.8),
+      4,
+      4,
+      paint,
+    );
+    
+    // Horizontal rectangle
+    canvas.drawRoundRect(
+      Rect.fromLTWH(size.width * 0.1, size.height * 0.35, size.width * 0.8, size.height * 0.3),
+      4,
+      4,
+      paint,
+    );
+  }
+  
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+extension on Canvas {
+  void drawRoundRect(Rect rect, int i, int j, Paint paint) {}
 }

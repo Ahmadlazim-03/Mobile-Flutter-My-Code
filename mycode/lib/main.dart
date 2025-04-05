@@ -1,25 +1,28 @@
-// lib/main.dart
 import 'package:flutter/material.dart';
-import 'package:mycode/splash_screen.dart';
-// Import SplashScreen
-import './pages/index.dart';
+import 'splash_screen.dart';
 
 void main() {
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'MyCode',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primarySwatch: Colors.blue,
-        fontFamily: 'Arial',
+        primaryColor: const Color(0xFF54408C),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF54408C),
+          primary: const Color(0xFF54408C),
+        ),
+        fontFamily: 'Roboto',
+        visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: const SplashScreen(), // Set SplashScreen as the initial page
+      home: const SplashScreen(),
     );
   }
 }
