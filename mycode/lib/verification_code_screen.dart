@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'home_screen.dart';
 import 'new_password_screen.dart';
 
 class VerificationCodeScreen extends StatefulWidget {

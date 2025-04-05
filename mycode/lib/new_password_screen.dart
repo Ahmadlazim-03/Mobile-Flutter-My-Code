@@ -1,7 +1,6 @@
 // new_password_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'sign_in_screen.dart';
 import 'password_success_screen.dart';
 
 class NewPasswordScreen extends StatefulWidget {
