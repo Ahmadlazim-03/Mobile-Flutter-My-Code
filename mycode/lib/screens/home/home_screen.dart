@@ -1,6 +1,7 @@
 // lib/screens/home/home_screen.dart
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import '../../providers/theme_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -22,145 +23,159 @@ class _HomeScreenState extends State<HomeScreen> {
   
   @override
   Widget build(BuildContext context) {
-    // Set status bar to dark icons on white background
-    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.dark,
-    ));
+    // Get the theme provider from the context
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDarkMode = themeProvider.isDarkMode;
     
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 16),
-                
-                // Header with search, title, and notification
-                _buildHeader(),
-                
-                const SizedBox(height: 24),
-                
-                // Special offer banner
-                _buildSpecialOfferBanner(),
-                
-                const SizedBox(height: 32),
-                
-                // Top of Week section
-                _buildSectionHeader('Top of Week', onSeeAllPressed: () {}),
-                const SizedBox(height: 16),
-                _buildBooksList(),
-                
-                const SizedBox(height: 32),
-                
-                // Best Vendors section
-                _buildSectionHeader('Best Vendors', onSeeAllPressed: () {}),
-                const SizedBox(height: 16),
-                _buildVendorsList(),
-                
-                const SizedBox(height: 32),
-                
-                // Authors section
-                _buildSectionHeader('Authors', onSeeAllPressed: () {}),
-                const SizedBox(height: 16),
-                _buildAuthorsList(),
-                
-                const SizedBox(height: 24),
-              ],
-            ),
-          ),
-        ),
-      ),
-      bottomNavigationBar: _buildBottomNavigationBar(),
-    );
-  }
-  
-  Widget _buildHeader() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        // Search icon
-        Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.shade300),
-          ),
-          child: const Icon(Icons.search, color: Colors.black),
-        ),
-        
-        // Title
-        const Text(
+      backgroundColor: isDarkMode ? Colors.black : Colors.white,
+      appBar: AppBar(
+        backgroundColor: isDarkMode ? Colors.black : Colors.white,
+        elevation: 0,
+        title: Text(
           'Home',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: Colors.black,
+            color: isDarkMode ? Colors.white : Colors.black,
           ),
         ),
-        
-        // Notification icon
-        Stack(
-          children: [
-            Container(
+        centerTitle: true,
+        leading: Container(
+          margin: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: isDarkMode ? Colors.grey.shade900 : Colors.grey.shade100,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(
+            Icons.search, 
+            color: isDarkMode ? Colors.white : Colors.black,
+          ),
+        ),
+        actions: [
+          // Theme toggle button
+          GestureDetector(
+            onTap: () {
+              themeProvider.toggleTheme();
+            },
+            child: Container(
               width: 40,
               height: 40,
+              margin: const EdgeInsets.only(right: 8),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: isDarkMode ? Colors.grey.shade900 : Colors.grey.shade100,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade300),
               ),
-              child: const Icon(Icons.notifications_outlined, color: Colors.black),
+              child: Icon(
+                isDarkMode ? Icons.light_mode : Icons.dark_mode,
+                color: isDarkMode ? Colors.white : Colors.black,
+              ),
             ),
-            Positioned(
-              right: 10,
-              top: 10,
-              child: Container(
-                width: 8,
-                height: 8,
-                decoration: const BoxDecoration(
-                  color: Colors.red,
-                  shape: BoxShape.circle,
+          ),
+          
+          // Notification icon
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                margin: const EdgeInsets.only(right: 16),
+                decoration: BoxDecoration(
+                  color: isDarkMode ? Colors.grey.shade900 : Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.notifications_outlined, 
+                  color: isDarkMode ? Colors.white : Colors.black,
                 ),
               ),
-            ),
-          ],
-        ),
-      ],
+              Positioned(
+                right: 22,
+                top: 12,
+                child: Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    color: Colors.red,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+      body: ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        children: [
+          const SizedBox(height: 16),
+          
+          // Special offer banner
+          _buildSpecialOfferBanner(isDarkMode),
+          
+          const SizedBox(height: 24),
+          
+          // Top of Week section
+          _buildSectionHeader('Top of Week', onSeeAllPressed: () {}, isDarkMode: isDarkMode),
+          const SizedBox(height: 16),
+          _buildBooksList(isDarkMode),
+          
+          const SizedBox(height: 24),
+          
+          // Best Vendors section
+          _buildSectionHeader('Best Vendors', onSeeAllPressed: () {}, isDarkMode: isDarkMode),
+          const SizedBox(height: 16),
+          _buildVendorsList(isDarkMode),
+          
+          const SizedBox(height: 24),
+          
+          // Authors section
+          _buildSectionHeader('Authors', onSeeAllPressed: () {}, isDarkMode: isDarkMode),
+          const SizedBox(height: 16),
+          _buildAuthorsList(isDarkMode),
+          
+          // Add extra padding at the bottom
+          const SizedBox(height: 24),
+        ],
+      ),
+      bottomNavigationBar: _buildBottomNavigationBar(isDarkMode),
     );
   }
   
-  Widget _buildSpecialOfferBanner() {
+  Widget _buildSpecialOfferBanner(bool isDarkMode) {
+    // Define multiple offers
     final offers = [
       {
         'title': 'Special Offer',
         'subtitle': 'Discount 25%',
         'buttonText': 'Order Now',
-        'image': 'https://m.media-amazon.com/images/I/91IM+7+b3xL._AC_UF1000,1000_QL80_.jpg',
+        'image': 'https://m.media-amazon.com/images/I/51JRoZRrNhL._SY445_SX342_.jpg',
+        'imageAlt': 'The Trials of Apollo',
+        'color': const Color(0xFF54408C),
       },
       {
-        'title': 'New Arrival',
+        'title': 'New Release',
         'subtitle': 'Best Seller Books',
-        'buttonText': 'See More',
-        'image': 'https://m.media-amazon.com/images/I/71rpa1-kyvL._AC_UF1000,1000_QL80_.jpg',
+        'buttonText': 'Get Now',
+        'image': 'https://m.media-amazon.com/images/I/71-++hbbERL._AC_UF1000,1000_QL80_.jpg',
+        'imageAlt': 'Harry Potter',
+        'color': const Color(0xFF1E88E5),
       },
       {
         'title': 'Flash Sale',
         'subtitle': 'Up to 50% Off',
         'buttonText': 'Shop Now',
-        'image': 'https://m.media-amazon.com/images/I/81FPzmB5fgL._AC_UF1000,1000_QL80_.jpg',
+        'image': 'https://m.media-amazon.com/images/I/81yfsIOijJL._AC_UF1000,1000_QL80_.jpg',
+        'imageAlt': 'Lord of the Rings',
+        'color': const Color(0xFFE53935),
       },
     ];
     
     return Container(
       height: 180,
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        color: isDarkMode ? Colors.grey.shade900 : Colors.grey.shade100,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Stack(
@@ -177,29 +192,30 @@ class _HomeScreenState extends State<HomeScreen> {
             itemBuilder: (context, index) {
               final offer = offers[index];
               return Padding(
-                padding: const EdgeInsets.all(24.0),
+                padding: const EdgeInsets.all(20.0),
                 child: Row(
                   children: [
                     // Left side text and button
                     Expanded(
+                      flex: 3,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            offer['title']!,
-                            style: const TextStyle(
+                            offer['title']! as String,
+                            style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
-                              color: Colors.black,
+                              color: isDarkMode ? Colors.white : Colors.black,
                             ),
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            offer['subtitle']!,
-                            style: const TextStyle(
+                            offer['subtitle']! as String,
+                            style: TextStyle(
                               fontSize: 16,
-                              color: Colors.black87,
+                              color: isDarkMode ? Colors.white70 : Colors.black87,
                             ),
                           ),
                           const SizedBox(height: 16),
@@ -208,13 +224,20 @@ class _HomeScreenState extends State<HomeScreen> {
                             child: ElevatedButton(
                               onPressed: () {},
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF54408C),
+                                backgroundColor: offer['color'] as Color,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(22),
                                 ),
                                 padding: const EdgeInsets.symmetric(horizontal: 24),
                               ),
-                              child: Text(offer['buttonText']!),
+                              child: Text(
+                                offer['buttonText']! as String,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
                             ),
                           ),
                         ],
@@ -222,14 +245,34 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     
                     // Right side book image
-                    Container(
-                      width: 120,
-                      height: 160,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        image: DecorationImage(
-                          image: NetworkImage(offer['image']!),
-                          fit: BoxFit.cover,
+                    Expanded(
+                      flex: 2,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.network(
+                            offer['image']! as String,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                decoration: BoxDecoration(
+                                  color: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade300,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    offer['imageAlt']! as String,
+                                    style: TextStyle(
+                                      color: isDarkMode ? Colors.white54 : Colors.black54,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
                         ),
                       ),
                     ),
@@ -255,8 +298,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: _currentOfferPage == index
-                        ? const Color(0xFF54408C)
-                        : Colors.grey.shade300,
+                        ? (offers[_currentOfferPage]['color'] as Color)
+                        : (isDarkMode ? Colors.grey.shade700 : Colors.grey.shade300),
                   ),
                 ),
               ),
@@ -267,16 +310,16 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
   
-  Widget _buildSectionHeader(String title, {required VoidCallback onSeeAllPressed}) {
+  Widget _buildSectionHeader(String title, {required VoidCallback onSeeAllPressed, required bool isDarkMode}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: Colors.black,
+            color: isDarkMode ? Colors.white : Colors.black,
           ),
         ),
         TextButton(
@@ -299,7 +342,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
   
-  Widget _buildBooksList() {
+  Widget _buildBooksList(bool isDarkMode) {
     final books = [
       {
         'title': 'The Kite Runner',
@@ -322,11 +365,12 @@ class _HomeScreenState extends State<HomeScreen> {
       height: 240,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
         itemCount: books.length,
         itemBuilder: (context, index) {
           final book = books[index];
           return Container(
-            width: 160,
+            width: 140,
             margin: EdgeInsets.only(right: index < books.length - 1 ? 16 : 0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -336,9 +380,31 @@ class _HomeScreenState extends State<HomeScreen> {
                   height: 180,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8),
-                    image: DecorationImage(
-                      image: NetworkImage(book['image']!),
+                    color: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade200,
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(
+                      book['image']!,
                       fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          decoration: BoxDecoration(
+                            color: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade300,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Center(
+                            child: Text(
+                              book['title']!,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: isDarkMode ? Colors.white70 : Colors.black87,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ),
@@ -346,9 +412,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 // Book title
                 Text(
                   book['title']!,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
+                    color: isDarkMode ? Colors.white : Colors.black,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -371,23 +438,23 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
   
-  Widget _buildVendorsList() {
+  Widget _buildVendorsList(bool isDarkMode) {
     final vendors = [
       {
         'name': 'Warehouse Stationery',
-        'logo': 'https://upload.wikimedia.org/wikipedia/en/thumb/c/c0/Warehouse_Stationery_logo.svg/1200px-Warehouse_Stationery_logo.svg.png',
+        'logo': 'https://www.warehousestationery.co.nz/on/demandware.static/Sites-wsl-Site/-/default/dw4c147e98/images/ws-logo.svg',
       },
       {
-        'name': 'Kuromi by Sanrio',
-        'logo': 'https://i.pinimg.com/originals/3e/53/54/3e5354a631f4a2e7959f0d40acf8d744.png',
+        'name': 'Kuromi',
+        'logo': 'https://i.pinimg.com/originals/60/35/25/603525cd1d9709d6ab9d499b6c2f8047.png',
       },
       {
         'name': 'GooDay',
-        'logo': 'https://play-lh.googleusercontent.com/Jm6-HF5mBCsW-kDGGKUvgEQgE-XBVS9JkjmXl6Lf6SROHJwzEMNhYKxKLfmqbB2qMA',
+        'logo': 'https://gooday.co.jp/wp-content/themes/gooday/assets/images/common/logo.svg',
       },
       {
         'name': 'Crane & Co.',
-        'logo': 'https://cdn.logojoy.com/wp-content/uploads/2018/05/30161703/3510.png',
+        'logo': 'https://www.crane.com/media/logo/stores/1/crane_logo.png',
       },
     ];
     
@@ -395,16 +462,17 @@ class _HomeScreenState extends State<HomeScreen> {
       height: 100,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
         itemCount: vendors.length,
         itemBuilder: (context, index) {
           final vendor = vendors[index];
           return Container(
-            width: 100,
+            width: 80,
             margin: EdgeInsets.only(right: index < vendors.length - 1 ? 16 : 0),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isDarkMode ? Colors.grey.shade900 : Colors.white,
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.grey.shade200),
+              border: Border.all(color: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade200),
             ),
             child: Center(
               child: Image.network(
@@ -416,9 +484,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Text(
                       vendor['name']!,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDarkMode ? Colors.white70 : Colors.black87,
                       ),
                     ),
                   );
@@ -431,7 +499,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
   
-  Widget _buildAuthorsList() {
+  Widget _buildAuthorsList(bool isDarkMode) {
     final authors = [
       {
         'name': 'John Freeman',
@@ -454,11 +522,12 @@ class _HomeScreenState extends State<HomeScreen> {
       height: 160,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
         itemCount: authors.length,
         itemBuilder: (context, index) {
           final author = authors[index];
           return Container(
-            width: 120,
+            width: 100,
             margin: EdgeInsets.only(right: index < authors.length - 1 ? 16 : 0),
             child: Column(
               children: [
@@ -468,9 +537,22 @@ class _HomeScreenState extends State<HomeScreen> {
                   height: 100,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    image: DecorationImage(
-                      image: NetworkImage(author['image']!),
+                    color: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade200,
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(50),
+                    child: Image.network(
+                      author['image']!,
                       fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Center(
+                          child: Icon(
+                            Icons.person,
+                            size: 40,
+                            color: isDarkMode ? Colors.grey.shade600 : Colors.grey.shade400,
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ),
@@ -478,9 +560,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 // Author name
                 Text(
                   author['name']!,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
+                    color: isDarkMode ? Colors.white : Colors.black,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -492,7 +575,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   author['role']!,
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.grey.shade600,
+                    color: isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -504,50 +587,38 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
   
-  Widget _buildBottomNavigationBar() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
-            spreadRadius: 1,
-            blurRadius: 10,
-            offset: const Offset(0, -3),
-          ),
-        ],
-      ),
-      child: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        selectedItemColor: const Color(0xFF54408C),
-        unselectedItemColor: Colors.grey,
-        showUnselectedLabels: true,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.category_outlined),
-            label: 'Category',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart_outlined),
-            label: 'Cart',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            label: 'Profile',
-          ),
-        ],
-      ),
+  Widget _buildBottomNavigationBar(bool isDarkMode) {
+    return BottomNavigationBar(
+      currentIndex: _selectedIndex,
+      onTap: (index) {
+        setState(() {
+          _selectedIndex = index;
+        });
+      },
+      type: BottomNavigationBarType.fixed,
+      backgroundColor: isDarkMode ? Colors.black : Colors.white,
+      selectedItemColor: const Color(0xFF54408C),
+      unselectedItemColor: isDarkMode ? Colors.grey.shade500 : Colors.grey,
+      showUnselectedLabels: true,
+      elevation: 8,
+      items: const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.home),
+          label: 'Home',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.category_outlined),
+          label: 'Category',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.shopping_cart_outlined),
+          label: 'Cart',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.person_outline),
+          label: 'Profile',
+        ),
+      ],
     );
   }
 }
