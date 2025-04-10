@@ -2,6 +2,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/theme_provider.dart';
+import '../../widgets/custom_buttom_nav_bar.dart';
+import 'my_account_screen.dart';
+import 'address_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -49,7 +52,7 @@ class ProfileScreen extends StatelessWidget {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(40),
                     child: Image.network(
-                      'https://i.pravatar.cc/150?img=8',
+                      'assets/images/profile/MyPhoto.jpg',
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
                         return CircleAvatar(
@@ -117,14 +120,26 @@ class ProfileScreen extends StatelessWidget {
                   title: 'My Account',
                   iconColor: const Color(0xFF54408C),
                   isDarkMode: isDarkMode,
-                  onTap: () {},
+                  onTap: () {
+                    // Navigate to My Account screen
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const MyAccountScreen()),
+                    );
+                  },
                 ),
                 _buildMenuItem(
                   icon: Icons.location_on,
                   title: 'Address',
                   iconColor: const Color(0xFF54408C),
                   isDarkMode: isDarkMode,
-                  onTap: () {},
+                  onTap: () {
+                    // Navigate to Address screen
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const AddressScreen()),
+                    );
+                  },
                 ),
                 _buildMenuItem(
                   icon: Icons.local_offer,
@@ -159,7 +174,11 @@ class ProfileScreen extends StatelessWidget {
           ),
         ],
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(context, isDarkMode),
+      bottomNavigationBar: CustomBottomNavBar(
+        currentIndex: 3, // Profile screen is index 3
+        context: context,
+        isDarkMode: isDarkMode,
+      ),
     );
   }
   
@@ -213,43 +232,4 @@ class ProfileScreen extends StatelessWidget {
       ),
     );
   }
-  
-  Widget _buildBottomNavigationBar(BuildContext context, bool isDarkMode) {
-  return BottomNavigationBar(
-    currentIndex: 3, // Change from 4 to 3 (Profile is the 4th item, index 3)
-    onTap: (index) {
-      if (index != 3) { // Change from 4 to 3
-        // If not the profile tab, navigate to home
-        if (index == 0) {
-          Navigator.pushReplacementNamed(context, '/home');
-        }
-        // Add other navigation options as needed
-      }
-    },
-    type: BottomNavigationBarType.fixed,
-    backgroundColor: isDarkMode ? Colors.black : Colors.white,
-    selectedItemColor: const Color(0xFF54408C),
-    unselectedItemColor: isDarkMode ? Colors.grey.shade500 : Colors.grey,
-    showUnselectedLabels: true,
-    elevation: 8,
-    items: const [
-      BottomNavigationBarItem(
-        icon: Icon(Icons.home),
-        label: 'Home',
-      ),
-      BottomNavigationBarItem(
-        icon: Icon(Icons.category_outlined),
-        label: 'Challenges',
-      ),
-      BottomNavigationBarItem(
-        icon: Icon(Icons.shopping_cart_outlined),
-        label: 'Forum',
-      ),
-      BottomNavigationBarItem(
-        icon: Icon(Icons.person_outline),
-        label: 'Profile',
-      ),
-    ],
-  );
-}
 }

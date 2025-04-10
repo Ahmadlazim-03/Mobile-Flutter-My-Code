@@ -2,10 +2,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/theme_provider.dart';
+import '../../widgets/custom_buttom_nav_bar.dart';
 import 'programming_screen.dart';
 import 'course_screen.dart';
 import 'notification_screen.dart';
-import '../profile/profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -15,7 +15,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _selectedIndex = 0;
   int _currentOfferPage = 0;
   final PageController _offerPageController = PageController();
   
@@ -164,7 +163,11 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 24),
         ],
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(isDarkMode),
+      bottomNavigationBar: CustomBottomNavBar(
+        currentIndex: 0, // Home screen is index 0
+        context: context,
+        isDarkMode: isDarkMode,
+      ),
     );
   }
   
@@ -630,48 +633,4 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-  
-  // Update the _buildBottomNavigationBar method in home_screen.dart
-  Widget _buildBottomNavigationBar(bool isDarkMode) {
-  return BottomNavigationBar(
-    currentIndex: _selectedIndex,
-    onTap: (index) {
-      if (index == 3) { // Profile tab (index 3, not 4)
-        // Navigate to Profile screen when Profile tab is clicked
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const ProfileScreen()),
-        );
-      } else {
-        setState(() {
-          _selectedIndex = index;
-        });
-      }
-    },
-    type: BottomNavigationBarType.fixed,
-    backgroundColor: isDarkMode ? Colors.black : Colors.white,
-    selectedItemColor: const Color(0xFF54408C),
-    unselectedItemColor: isDarkMode ? Colors.grey.shade500 : Colors.grey,
-    showUnselectedLabels: true,
-    elevation: 8,
-    items: const [
-      BottomNavigationBarItem(
-        icon: Icon(Icons.home),
-        label: 'Home',
-      ),
-      BottomNavigationBarItem(
-        icon: Icon(Icons.category_outlined),
-        label: 'Challenges',
-      ),
-      BottomNavigationBarItem(
-        icon: Icon(Icons.shopping_cart_outlined),
-        label: 'Forum',
-      ),
-      BottomNavigationBarItem(
-        icon: Icon(Icons.person_outline),
-        label: 'Profile',
-      ),
-    ],
-  );
-}
 }
