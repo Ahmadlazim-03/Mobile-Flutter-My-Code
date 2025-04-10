@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/theme_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class AddressScreen extends StatefulWidget {
   const AddressScreen({Key? key}) : super(key: key);
@@ -12,6 +13,32 @@ class AddressScreen extends StatefulWidget {
 
 class _AddressScreenState extends State<AddressScreen> {
   String _selectedAddressType = 'Home';
+  
+  // Predefined location (New York)
+  final double _latitude = 40.7128;
+  final double _longitude = -74.0060;
+  final String _address = 'Utama Street No.20';
+  final String _detailedAddress = 'state Street No.15, New York 10001, United States';
+  
+  // Google Maps static image URL
+  String get _mapImageUrl => 
+    'https://maps.googleapis.com/maps/api/staticmap?center=$_latitude,$_longitude'
+    '&zoom=15&size=600x300&maptype=roadmap'
+    '&markers=color:purple%7C$_latitude,$_longitude'
+    '&key=YOUR_API_KEY_HERE'; // Replace with your Google Maps API key
+  
+  // Google Maps URL for opening in browser/app
+  String get _mapsUrl => 'https://www.google.com/maps/search/?api=1&query=$_latitude,$_longitude';
+  
+  Future<void> _openInMaps() async {
+    if (await canLaunch(_mapsUrl)) {
+      await launch(_mapsUrl);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not open the map')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,50 +76,76 @@ class _AddressScreenState extends State<AddressScreen> {
             color: const Color(0xFFEFEBFF),
             child: Stack(
               children: [
-                // Map placeholder
-                Center(
-                  child: Text(
-                    'New York',
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF54408C).withOpacity(0.7),
-                    ),
-                  ),
+                // Static map image
+                Image.network(
+                  _mapImageUrl,
+                  width: double.infinity,
+                  height: 300,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'New York',
+                            style: TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF54408C).withOpacity(0.7),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Map image could not be loaded',
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 ),
                 
-                // Location marker
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF54408C),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.location_on,
-                      color: Colors.white,
-                      size: 24,
-                    ),
-                  ),
-                ),
-                
-                // Current location indicator
+                // Open in Maps button
                 Positioned(
-                  bottom: 80,
-                  right: MediaQuery.of(context).size.width / 2 - 60,
-                  child: Container(
-                    width: 30,
-                    height: 30,
-                    decoration: BoxDecoration(
-                      color: Colors.blue,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.navigation,
-                      color: Colors.white,
-                      size: 18,
+                  top: 16,
+                  right: 16,
+                  child: GestureDetector(
+                    onTap: _openInMaps,
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.open_in_new,
+                            size: 16,
+                            color: const Color(0xFF54408C),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Open in Maps',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: const Color(0xFF54408C),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -136,17 +189,20 @@ class _AddressScreenState extends State<AddressScreen> {
                           color: isDarkMode ? Colors.white : Colors.black,
                         ),
                       ),
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF54408C).withOpacity(0.1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.my_location,
-                          color: const Color(0xFF54408C),
-                          size: 24,
+                      GestureDetector(
+                        onTap: _openInMaps,
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF54408C).withOpacity(0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.my_location,
+                            color: const Color(0xFF54408C),
+                            size: 24,
+                          ),
                         ),
                       ),
                     ],
@@ -177,7 +233,7 @@ class _AddressScreenState extends State<AddressScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Utama Street No.20',
+                              _address,
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -186,7 +242,7 @@ class _AddressScreenState extends State<AddressScreen> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'state Street No.15, New York 10001, United States',
+                              _detailedAddress,
                               style: TextStyle(
                                 fontSize: 14,
                                 color: Colors.grey,
