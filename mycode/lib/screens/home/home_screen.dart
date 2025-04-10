@@ -117,21 +117,21 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 24),
           
           // Top of Week section
-          _buildSectionHeader('Top of Week', onSeeAllPressed: () {}, isDarkMode: isDarkMode),
+          _buildSectionHeader('Top Courses This Week', onSeeAllPressed: () {}, isDarkMode: isDarkMode),
           const SizedBox(height: 16),
           _buildBooksList(isDarkMode),
           
           const SizedBox(height: 24),
           
           // Best Vendors section
-          _buildSectionHeader('Best Vendors', onSeeAllPressed: () {}, isDarkMode: isDarkMode),
+          _buildSectionHeader('Programming Languages', onSeeAllPressed: () {}, isDarkMode: isDarkMode),
           const SizedBox(height: 16),
           _buildVendorsList(isDarkMode),
           
           const SizedBox(height: 24),
           
           // Authors section
-          _buildSectionHeader('Authors', onSeeAllPressed: () {}, isDarkMode: isDarkMode),
+          _buildSectionHeader('Trending Challenges', onSeeAllPressed: () {}, isDarkMode: isDarkMode),
           const SizedBox(height: 16),
           _buildAuthorsList(isDarkMode),
           
@@ -147,26 +147,26 @@ class _HomeScreenState extends State<HomeScreen> {
     // Define multiple offers
     final offers = [
       {
-        'title': 'Special Offer',
+        'title': 'laravel Course',
         'subtitle': 'Discount 25%',
         'buttonText': 'Order Now',
-        'image': 'https://m.media-amazon.com/images/I/51JRoZRrNhL._SY445_SX342_.jpg',
+        'image': 'assets/images/home/laravel-course.jpg',
         'imageAlt': 'The Trials of Apollo',
         'color': const Color(0xFF54408C),
       },
       {
-        'title': 'New Release',
-        'subtitle': 'Best Seller Books',
-        'buttonText': 'Get Now',
-        'image': 'https://m.media-amazon.com/images/I/71-++hbbERL._AC_UF1000,1000_QL80_.jpg',
+        'title': 'Symfony Course',
+        'subtitle': 'Discount 10%',
+        'buttonText': 'Order Now',
+        'image': 'assets/images/home/symfony-course.png',
         'imageAlt': 'Harry Potter',
         'color': const Color(0xFF1E88E5),
       },
       {
-        'title': 'Flash Sale',
-        'subtitle': 'Up to 50% Off',
-        'buttonText': 'Shop Now',
-        'image': 'https://m.media-amazon.com/images/I/81yfsIOijJL._AC_UF1000,1000_QL80_.jpg',
+        'title': 'Falcon Course',
+        'subtitle': 'Discount 30%',
+        'buttonText': 'Order Now',
+        'image': 'assets/images/home/falcon-course.png',
         'imageAlt': 'Lord of the Rings',
         'color': const Color(0xFFE53935),
       },
@@ -347,17 +347,22 @@ class _HomeScreenState extends State<HomeScreen> {
       {
         'title': 'The Kite Runner',
         'price': '\$14.99',
-        'image': 'https://m.media-amazon.com/images/I/81IzbD2IiIL._AC_UF1000,1000_QL80_.jpg',
+        'image': 'assets/images/home/course1.jpeg',
       },
       {
         'title': 'The Subtle Art of Not Giving a F*ck',
         'price': '\$20.99',
-        'image': 'https://m.media-amazon.com/images/I/71QKQ9mwV7L._AC_UF1000,1000_QL80_.jpg',
+        'image': 'assets/images/home/course2.jpeg',
       },
       {
         'title': 'The Art of War',
         'price': '\$14.99',
-        'image': 'https://m.media-amazon.com/images/I/71dNsRuYL7L._AC_UF1000,1000_QL80_.jpg',
+        'image': 'assets/images/home/course3.jpg',
+      },
+       {
+        'title': 'The Art of War',
+        'price': '\$18.99',
+        'image': ' assets/images/home/course4.png',
       },
     ];
     
@@ -441,20 +446,24 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildVendorsList(bool isDarkMode) {
     final vendors = [
       {
-        'name': 'Warehouse Stationery',
-        'logo': 'https://www.warehousestationery.co.nz/on/demandware.static/Sites-wsl-Site/-/default/dw4c147e98/images/ws-logo.svg',
+        'name': 'HTML',
+        'logo': 'assets/images/home/html.png',
       },
       {
-        'name': 'Kuromi',
-        'logo': 'https://i.pinimg.com/originals/60/35/25/603525cd1d9709d6ab9d499b6c2f8047.png',
+        'name': 'CSS',
+        'logo': 'assets/images/home/css.png',
       },
       {
-        'name': 'GooDay',
-        'logo': 'https://gooday.co.jp/wp-content/themes/gooday/assets/images/common/logo.svg',
+        'name': 'Java Script',
+        'logo': 'assets/images/home/js.png',
       },
       {
-        'name': 'Crane & Co.',
-        'logo': 'https://www.crane.com/media/logo/stores/1/crane_logo.png',
+        'name': 'PHP',
+        'logo': 'assets/images/home/php.png',
+      },
+      {
+        'name': 'Python',
+        'logo': 'assets/images/home/python.png',
       },
     ];
     
@@ -502,19 +511,29 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildAuthorsList(bool isDarkMode) {
     final authors = [
       {
-        'name': 'John Freeman',
-        'role': 'Writer',
-        'image': 'https://randomuser.me/api/portraits/men/32.jpg',
+        'name': 'Responsive Portfolio with HTML & CSS',
+        'role': 'HTML',
+        'image': 'assets/images/home/challenge.png',
       },
       {
-        'name': 'Tess Gunty',
-        'role': 'Novelist',
-        'image': 'https://randomuser.me/api/portraits/women/44.jpg',
+        'name': '30-Minute CSS Art Challenge',
+        'role': 'CSS',
+        'image': 'assets/images/home/challenge.png',
       },
       {
-        'name': 'Richard Per',
-        'role': 'Writer',
-        'image': 'https://randomuser.me/api/portraits/men/46.jpg',
+        'name': 'Build a To-Do App in JavaScript',
+        'role': 'Java Script',
+        'image': 'assets/images/home/challenge.png',
+      },
+      {
+        'name': 'API Fetch & Display with React',
+        'role': 'PHP',
+        'image': 'assets/images/home/challenge.png',
+      },
+      {
+        'name': 'Create a Calculator in Flutter',
+        'role': 'Python',
+        'image': 'assets/images/home/challenge.png',
       },
     ];
     
@@ -556,7 +575,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 // Author name
                 Text(
                   author['name']!,
