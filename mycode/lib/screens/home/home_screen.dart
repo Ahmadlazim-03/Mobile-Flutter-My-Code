@@ -2,6 +2,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/theme_provider.dart';
+import 'programming_screen.dart';
+import 'course_screen.dart';
+import 'notification_screen.dart';
+import '../profile/profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -73,36 +77,45 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           
-          // Notification icon
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                margin: const EdgeInsets.only(right: 16),
-                decoration: BoxDecoration(
-                  color: isDarkMode ? Colors.grey.shade900 : Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.notifications_outlined, 
-                  color: isDarkMode ? Colors.white : Colors.black,
-                ),
-              ),
-              Positioned(
-                right: 22,
-                top: 12,
-                child: Container(
-                  width: 8,
-                  height: 8,
-                  decoration: const BoxDecoration(
-                    color: Colors.red,
-                    shape: BoxShape.circle,
+          // Notification icon - Updated with navigation
+          GestureDetector(
+            onTap: () {
+              // Navigate to the Notification Screen when the bell icon is clicked
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const NotificationScreen()),
+              );
+            },
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  margin: const EdgeInsets.only(right: 16),
+                  decoration: BoxDecoration(
+                    color: isDarkMode ? Colors.grey.shade900 : Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.notifications_outlined, 
+                    color: isDarkMode ? Colors.white : Colors.black,
                   ),
                 ),
-              ),
-            ],
+                Positioned(
+                  right: 22,
+                  top: 12,
+                  child: Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -117,14 +130,26 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 24),
           
           // Top of Week section
-          _buildSectionHeader('Top Courses This Week', onSeeAllPressed: () {}, isDarkMode: isDarkMode),
+          _buildSectionHeader('Top Courses This Week', onSeeAllPressed: () {
+          // Navigate to the Course Screen when "See all" is clicked
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const CourseScreen()),
+            );
+          }, isDarkMode: isDarkMode),
           const SizedBox(height: 16),
           _buildBooksList(isDarkMode),
           
           const SizedBox(height: 24),
           
-          // Best Vendors section
-          _buildSectionHeader('Programming Languages', onSeeAllPressed: () {}, isDarkMode: isDarkMode),
+          // Programming Languages section - Updated with navigation
+          _buildSectionHeader('Programming Languages', onSeeAllPressed: () {
+            // Navigate to the Programming Screen when "See all" is clicked
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ProgrammingScreen()),
+            );
+          }, isDarkMode: isDarkMode),
           const SizedBox(height: 16),
           _buildVendorsList(isDarkMode),
           
@@ -147,11 +172,11 @@ class _HomeScreenState extends State<HomeScreen> {
     // Define multiple offers
     final offers = [
       {
-        'title': 'laravel Course',
+        'title': 'Laravel Course',
         'subtitle': 'Discount 25%',
         'buttonText': 'Order Now',
         'image': 'assets/images/home/laravel-course.jpg',
-        'imageAlt': 'The Trials of Apollo',
+        'imageAlt': 'Laravel Course',
         'color': const Color(0xFF54408C),
       },
       {
@@ -159,7 +184,7 @@ class _HomeScreenState extends State<HomeScreen> {
         'subtitle': 'Discount 10%',
         'buttonText': 'Order Now',
         'image': 'assets/images/home/symfony-course.png',
-        'imageAlt': 'Harry Potter',
+        'imageAlt': 'Symfony Course',
         'color': const Color(0xFF1E88E5),
       },
       {
@@ -167,7 +192,7 @@ class _HomeScreenState extends State<HomeScreen> {
         'subtitle': 'Discount 30%',
         'buttonText': 'Order Now',
         'image': 'assets/images/home/falcon-course.png',
-        'imageAlt': 'Lord of the Rings',
+        'imageAlt': 'Falcon Course',
         'color': const Color(0xFFE53935),
       },
     ];
@@ -359,10 +384,10 @@ class _HomeScreenState extends State<HomeScreen> {
         'price': '\$14.99',
         'image': 'assets/images/home/course3.jpg',
       },
-       {
+      {
         'title': 'The Art of War',
         'price': '\$18.99',
-        'image': ' assets/images/home/course4.png',
+        'image': 'assets/images/home/course4.png',
       },
     ];
     
@@ -606,38 +631,47 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
   
+  // Update the _buildBottomNavigationBar method in home_screen.dart
   Widget _buildBottomNavigationBar(bool isDarkMode) {
-    return BottomNavigationBar(
-      currentIndex: _selectedIndex,
-      onTap: (index) {
+  return BottomNavigationBar(
+    currentIndex: _selectedIndex,
+    onTap: (index) {
+      if (index == 3) { // Profile tab (index 3, not 4)
+        // Navigate to Profile screen when Profile tab is clicked
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const ProfileScreen()),
+        );
+      } else {
         setState(() {
           _selectedIndex = index;
         });
-      },
-      type: BottomNavigationBarType.fixed,
-      backgroundColor: isDarkMode ? Colors.black : Colors.white,
-      selectedItemColor: const Color(0xFF54408C),
-      unselectedItemColor: isDarkMode ? Colors.grey.shade500 : Colors.grey,
-      showUnselectedLabels: true,
-      elevation: 8,
-      items: const [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.home),
-          label: 'Home',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.category_outlined),
-          label: 'Category',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.shopping_cart_outlined),
-          label: 'Cart',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.person_outline),
-          label: 'Profile',
-        ),
-      ],
-    );
-  }
+      }
+    },
+    type: BottomNavigationBarType.fixed,
+    backgroundColor: isDarkMode ? Colors.black : Colors.white,
+    selectedItemColor: const Color(0xFF54408C),
+    unselectedItemColor: isDarkMode ? Colors.grey.shade500 : Colors.grey,
+    showUnselectedLabels: true,
+    elevation: 8,
+    items: const [
+      BottomNavigationBarItem(
+        icon: Icon(Icons.home),
+        label: 'Home',
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.category_outlined),
+        label: 'Challenges',
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.shopping_cart_outlined),
+        label: 'Forum',
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.person_outline),
+        label: 'Profile',
+      ),
+    ],
+  );
+}
 }
