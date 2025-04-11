@@ -1,6 +1,4 @@
-// lib/screens/home/home_screen.dart
 import 'package:flutter/material.dart';
-import 'package:mycode/screens/challenges/all_challenge_screen.dart';
 import 'package:provider/provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../widgets/custom_buttom_nav_bar.dart';
@@ -8,6 +6,7 @@ import 'programming_screen.dart';
 import 'course_screen.dart';
 import 'notification_screen.dart';
 import 'training_screen.dart';
+import '../challenges/all_challenge_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -16,13 +15,174 @@ class HomeScreen extends StatefulWidget {
   _HomeScreenState createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
   int _currentOfferPage = 0;
   final PageController _offerPageController = PageController();
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  int _selectedCategoryIndex = 0; // Added state variable for selected category
+  
+  // Sample data for different categories
+  final Map<String, List<Map<String, dynamic>>> _categoryContent = {
+    'all': [
+      {
+        'title': 'The Kite Runner',
+        'author': 'Khaled Hosseini',
+        'price': '\$14.99',
+        'rating': 4.8,
+        'image': 'assets/images/home/course1.jpeg',
+        'color': const Color(0xFF54408C),
+      },
+      {
+        'title': 'The Subtle Art of Not Giving a F*ck',
+        'author': 'Mark Manson',
+        'price': '\$20.99',
+        'rating': 4.5,
+        'image': 'assets/images/home/course2.jpeg',
+        'color': const Color(0xFF1E88E5),
+      },
+      {
+        'title': 'The Art of War',
+        'author': 'Sun Tzu',
+        'price': '\$14.99',
+        'rating': 4.7,
+        'image': 'assets/images/home/course3.jpg',
+        'color': const Color(0xFFE53935),
+      },
+      {
+        'title': 'The Art of War',
+        'author': 'Sun Tzu',
+        'price': '\$18.99',
+        'rating': 4.6,
+        'image': 'assets/images/home/course4.png',
+        'color': const Color(0xFF43A047),
+      },
+    ],
+    'design': [
+      {
+        'title': 'UI/UX Design Masterclass',
+        'author': 'Sarah Johnson',
+        'price': '\$24.99',
+        'rating': 4.8,
+        'image': 'assets/images/home/course2.jpeg',
+        'color': const Color(0xFF1E88E5),
+      },
+      {
+        'title': 'Graphic Design Fundamentals',
+        'author': 'David Lee',
+        'price': '\$18.99',
+        'rating': 4.7,
+        'image': 'assets/images/home/course3.jpg',
+        'color': const Color(0xFFE53935),
+      },
+      {
+        'title': 'Adobe Photoshop Advanced',
+        'author': 'Lisa Chen',
+        'price': '\$29.99',
+        'rating': 4.9,
+        'image': 'assets/images/home/course1.jpeg',
+        'color': const Color(0xFF54408C),
+      },
+    ],
+    'coding': [
+      {
+        'title': 'Complete Web Development',
+        'author': 'John Smith',
+        'price': '\$19.99',
+        'rating': 4.9,
+        'image': 'assets/images/home/course1.jpeg',
+        'color': const Color(0xFF54408C),
+      },
+      {
+        'title': 'Python for Data Science',
+        'author': 'Robert Johnson',
+        'price': '\$22.99',
+        'rating': 4.8,
+        'image': 'assets/images/home/course4.png',
+        'color': const Color(0xFF43A047),
+      },
+      {
+        'title': 'Mobile App Development',
+        'author': 'Jessica Williams',
+        'price': '\$24.99',
+        'rating': 4.7,
+        'image': 'assets/images/home/course2.jpeg',
+        'color': const Color(0xFF1E88E5),
+      },
+    ],
+    'marketing': [
+      {
+        'title': 'Digital Marketing 101',
+        'author': 'Michael Brown',
+        'price': '\$15.99',
+        'rating': 4.7,
+        'image': 'assets/images/home/course3.jpg',
+        'color': const Color(0xFFE53935),
+      },
+      {
+        'title': 'Social Media Strategy',
+        'author': 'Amanda Garcia',
+        'price': '\$17.99',
+        'rating': 4.6,
+        'image': 'assets/images/home/course2.jpeg',
+        'color': const Color(0xFF1E88E5),
+      },
+      {
+        'title': 'Content Marketing Mastery',
+        'author': 'Daniel Wilson',
+        'price': '\$19.99',
+        'rating': 4.8,
+        'image': 'assets/images/home/course1.jpeg',
+        'color': const Color(0xFF54408C),
+      },
+    ],
+    'business': [
+      {
+        'title': 'Business Analytics',
+        'author': 'Emma Wilson',
+        'price': '\$22.99',
+        'rating': 4.6,
+        'image': 'assets/images/home/course4.png',
+        'color': const Color(0xFF43A047),
+      },
+      {
+        'title': 'Entrepreneurship Essentials',
+        'author': 'Thomas Brown',
+        'price': '\$24.99',
+        'rating': 4.9,
+        'image': 'assets/images/home/course1.jpeg',
+        'color': const Color(0xFF54408C),
+      },
+      {
+        'title': 'Financial Management',
+        'author': 'Olivia Martinez',
+        'price': '\$21.99',
+        'rating': 4.7,
+        'image': 'assets/images/home/course3.jpg',
+        'color': const Color(0xFFE53935),
+      },
+    ],
+  };
+  
+  String _currentCategory = 'all';
+  
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
+    );
+    _animationController.forward();
+  }
   
   @override
   void dispose() {
     _offerPageController.dispose();
+    _animationController.dispose();
     super.dispose();
   }
   
@@ -31,85 +191,192 @@ class _HomeScreenState extends State<HomeScreen> {
     // Get the theme provider from the context
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDarkMode = themeProvider.isDarkMode;
+    final primaryColor = const Color(0xFF54408C);
     
     return Scaffold(
-      backgroundColor: isDarkMode ? const Color(0xFF121212) : Colors.white,
+      backgroundColor: isDarkMode ? const Color(0xFF121212) : const Color(0xFFF8F9FA),
       body: SafeArea(
         child: Column(
           children: [
-            // Custom App Bar
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Greeting and title
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+            // Enhanced App Bar
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+                borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          'Hello, Developer!',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
-                          ),
+                        // User profile and greeting
+                        Row(
+                          children: [
+                            Container(
+                              width: 45,
+                              height: 45,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    primaryColor,
+                                    primaryColor.withBlue(primaryColor.blue + 40),
+                                  ],
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: primaryColor.withOpacity(0.3),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              child: Center(
+                                child: Text(
+                                  'D',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    shadows: [
+                                      Shadow(
+                                        color: Colors.black.withOpacity(0.2),
+                                        blurRadius: 2,
+                                        offset: const Offset(0, 1),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Home',
+                                  style: TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                    color: isDarkMode ? Colors.white : Colors.black,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Find Your Course',
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: isDarkMode ? Colors.white : Colors.black,
-                          ),
+                        
+                        // Action buttons
+                        Row(
+                          children: [
+                            // Search button
+                            _buildActionButton(
+                              icon: Icons.search,
+                              onTap: () {
+                                // Show search dialog
+                              },
+                              isDarkMode: isDarkMode,
+                              primaryColor: primaryColor,
+                            ),
+                            
+                            const SizedBox(width: 12),
+                            
+                            // Theme toggle button
+                            _buildActionButton(
+                              icon: isDarkMode ? Icons.light_mode : Icons.dark_mode,
+                              onTap: () {
+                                themeProvider.toggleTheme();
+                              },
+                              isDarkMode: isDarkMode,
+                              primaryColor: primaryColor,
+                            ),
+                            
+                            const SizedBox(width: 12),
+                            
+                            // Notification button
+                            _buildActionButton(
+                              icon: Icons.notifications_outlined,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const NotificationScreen(),
+                                  ),
+                                );
+                              },
+                              isDarkMode: isDarkMode,
+                              showBadge: true,
+                              primaryColor: primaryColor,
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ),
-                  
-                  // Action buttons
-                  Row(
-                    children: [
-                      // Search button
-                      _buildActionButton(
-                        icon: Icons.search,
-                        onTap: () {
-                          // Show search dialog
-                        },
-                        isDarkMode: isDarkMode,
+                    
+                    // Search bar
+                    const SizedBox(height: 16),
+                    Container(
+                      height: 50,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: isDarkMode ? const Color(0xFF2A2A2A) : Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(15),
+                        border: Border.all(
+                          color: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade300,
+                          width: 1,
+                        ),
                       ),
-                      
-                      const SizedBox(width: 12),
-                      
-                      // Theme toggle button
-                      _buildActionButton(
-                        icon: isDarkMode ? Icons.light_mode : Icons.dark_mode,
-                        onTap: () {
-                          themeProvider.toggleTheme();
-                        },
-                        isDarkMode: isDarkMode,
-                      ),
-                      
-                      const SizedBox(width: 12),
-                      
-                      // Notification button
-                      _buildActionButton(
-                        icon: Icons.notifications_outlined,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const NotificationScreen(),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.search,
+                            color: isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: TextField(
+                              decoration: InputDecoration(
+                                hintText: 'Search for courses, challenges...',
+                                hintStyle: TextStyle(
+                                  color: isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
+                                  fontSize: 14,
+                                ),
+                                border: InputBorder.none,
+                              ),
+                              style: TextStyle(
+                                color: isDarkMode ? Colors.white : Colors.black,
+                              ),
                             ),
-                          );
-                        },
-                        isDarkMode: isDarkMode,
-                        showBadge: true,
+                          ),
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: primaryColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(
+                              Icons.tune,
+                              color: primaryColor,
+                              size: 20,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
             ),
             
@@ -126,28 +393,22 @@ class _HomeScreenState extends State<HomeScreen> {
                   
                   const SizedBox(height: 24),
                   
-                  // Categories section
-                  Text(
-                    'Categories',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: isDarkMode ? Colors.white : Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildCategoriesList(isDarkMode),
-                  
-                  const SizedBox(height: 24),
-                  
-                  // Top of Week section
+                  // Top Courses This Week header (moved here to replace Categories text)
                   _buildSectionHeader('Top Courses This Week', onSeeAllPressed: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const CourseScreen()),
                     );
                   }, isDarkMode: isDarkMode),
+                  
                   const SizedBox(height: 16),
+                  
+                  // Categories list (without the Categories text)
+                  _buildCategoriesList(isDarkMode),
+                  
+                  const SizedBox(height: 16),
+                  
+                  // Top Courses content (filtered by category)
                   _buildBooksList(isDarkMode),
                   
                   const SizedBox(height: 24),
@@ -166,7 +427,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   
                   // Trending Challenges section
                   _buildSectionHeader('Trending Challenges', onSeeAllPressed: () {
-                     Navigator.push(
+                    // Navigate to the AllChallengeScreen when "See all" is clicked
+                    Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const AllChallengeScreen()),
                     );
@@ -194,6 +456,7 @@ class _HomeScreenState extends State<HomeScreen> {
     required IconData icon,
     required VoidCallback onTap,
     required bool isDarkMode,
+    required Color primaryColor,
     bool showBadge = false,
   }) {
     return GestureDetector(
@@ -215,6 +478,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         offset: const Offset(0, 2),
                       ),
                     ],
+              border: Border.all(
+                color: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade200,
+                width: 1,
+              ),
             ),
             child: Icon(
               icon,
@@ -230,12 +497,19 @@ class _HomeScreenState extends State<HomeScreen> {
                 width: 10,
                 height: 10,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF54408C),
+                  color: primaryColor,
                   shape: BoxShape.circle,
                   border: Border.all(
                     color: isDarkMode ? const Color(0xFF121212) : Colors.white,
                     width: 1.5,
                   ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: primaryColor.withOpacity(0.5),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -513,26 +787,31 @@ class _HomeScreenState extends State<HomeScreen> {
         'name': 'All',
         'icon': Icons.apps,
         'color': const Color(0xFF54408C),
+        'value': 'all',
       },
       {
         'name': 'Design',
         'icon': Icons.brush,
         'color': const Color(0xFF1E88E5),
+        'value': 'design',
       },
       {
         'name': 'Coding',
         'icon': Icons.code,
         'color': const Color(0xFFE53935),
+        'value': 'coding',
       },
       {
         'name': 'Marketing',
         'icon': Icons.trending_up,
         'color': const Color(0xFF43A047),
+        'value': 'marketing',
       },
       {
         'name': 'Business',
         'icon': Icons.business,
         'color': const Color(0xFFFF9800),
+        'value': 'business',
       },
     ];
     
@@ -544,51 +823,71 @@ class _HomeScreenState extends State<HomeScreen> {
         itemCount: categories.length,
         itemBuilder: (context, index) {
           final category = categories[index];
-          final isSelected = index == 0; // First item is selected by default
+          final isSelected = index == _selectedCategoryIndex;
           
-          return Container(
-            width: 80,
-            margin: EdgeInsets.only(right: index < categories.length - 1 ? 16 : 0),
-            child: Column(
-              children: [
-                Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? (category['color'] as Color)
-                        : (isDarkMode ? const Color(0xFF2A2A2A) : Colors.grey.shade100),
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: isSelected && !isDarkMode
-                        ? [
-                            BoxShadow(
-                              color: (category['color'] as Color).withOpacity(0.3),
-                              blurRadius: 8,
-                              offset: const Offset(0, 4),
-                            ),
-                          ]
-                        : [],
-                  ),
-                  child: Icon(
-                    category['icon'] as IconData,
-                    color: isSelected
-                        ? Colors.white
-                        : (isDarkMode ? Colors.white : Colors.black),
-                    size: 28,
+          return GestureDetector(
+            onTap: () {
+              setState(() {
+                _selectedCategoryIndex = index;
+                _currentCategory = category['value'] as String;
+              });
+              
+              // Show a snackbar to indicate category change
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Showing ${category['name']} courses'),
+                  duration: const Duration(seconds: 1),
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  category['name'] as String,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                    color: isSelected
-                        ? (category['color'] as Color)
-                        : (isDarkMode ? Colors.white : Colors.black),
+              );
+            },
+            child: Container(
+              width: 80,
+              margin: EdgeInsets.only(right: index < categories.length - 1 ? 16 : 0),
+              child: Column(
+                children: [
+                  Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? (category['color'] as Color)
+                          : (isDarkMode ? const Color(0xFF2A2A2A) : Colors.grey.shade100),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: isSelected && !isDarkMode
+                          ? [
+                              BoxShadow(
+                                color: (category['color'] as Color).withOpacity(0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ]
+                          : [],
+                    ),
+                    child: Icon(
+                      category['icon'] as IconData,
+                      color: isSelected
+                          ? Colors.white
+                          : (isDarkMode ? Colors.white : Colors.black),
+                      size: 28,
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 8),
+                  Text(
+                    category['name'] as String,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      color: isSelected
+                          ? (category['color'] as Color)
+                          : (isDarkMode ? Colors.white : Colors.black),
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         },
@@ -644,41 +943,35 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
   
+  // Modified to use the selected category
   Widget _buildBooksList(bool isDarkMode) {
-    final List<Map<String, dynamic>> books = [
-      {
-        'title': 'The Kite Runner',
-        'author': 'Khaled Hosseini',
-        'price': '\$14.99',
-        'rating': 4.8,
-        'image': 'assets/images/home/course1.jpeg',
-        'color': const Color(0xFF54408C),
-      },
-      {
-        'title': 'The Subtle Art of Not Giving a F*ck',
-        'author': 'Mark Manson',
-        'price': '\$20.99',
-        'rating': 4.5,
-        'image': 'assets/images/home/course2.jpeg',
-        'color': const Color(0xFF1E88E5),
-      },
-      {
-        'title': 'The Art of War',
-        'author': 'Sun Tzu',
-        'price': '\$14.99',
-        'rating': 4.7,
-        'image': 'assets/images/home/course3.jpg',
-        'color': const Color(0xFFE53935),
-      },
-      {
-        'title': 'The Art of War',
-        'author': 'Sun Tzu',
-        'price': '\$18.99',
-        'rating': 4.6,
-        'image': 'assets/images/home/course4.png',
-        'color': const Color(0xFF43A047),
-      },
-    ];
+    // Get the courses for the current category
+    final List<Map<String, dynamic>> books = _categoryContent[_currentCategory] ?? [];
+    
+    if (books.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 40),
+          child: Column(
+            children: [
+              Icon(
+                Icons.search_off,
+                size: 48,
+                color: isDarkMode ? Colors.grey.shade600 : Colors.grey.shade400,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'No courses available for this category',
+                style: TextStyle(
+                  color: isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
+                  fontSize: 16,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
     
     return SizedBox(
       height: 280,
@@ -824,72 +1117,187 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
   
-  // Update the _buildVendorsList method in HomeScreen
-Widget _buildVendorsList(bool isDarkMode) {
-  final List<Map<String, dynamic>> vendors = [
-    {
-      'name': 'HTML',
-      'logo': 'assets/images/home/html.png',
-      'color': const Color(0xFFE44D26),
-      'bgColor': const Color(0xFFFFEBEE),
-    },
-    {
-      'name': 'CSS',
-      'logo': 'assets/images/home/css.png',
-      'color': const Color(0xFF264DE4),
-      'bgColor': const Color(0xFFE3F2FD),
-    },
-    {
-      'name': 'JavaScript',
-      'logo': 'assets/images/home/js.png',
-      'color': const Color(0xFFF7DF1E),
-      'bgColor': const Color(0xFFFFFDE7),
-    },
-    {
-      'name': 'PHP',
-      'logo': 'assets/images/home/php.png',
-      'color': const Color(0xFF777BB3),
-      'bgColor': const Color(0xFFEDE7F6),
-    },
-    {
-      'name': 'Python',
-      'logo': 'assets/images/home/python.png',
-      'color': const Color(0xFF3776AB),
-      'bgColor': const Color(0xFFE1F5FE),
-    },
-  ];
-  
-  return SizedBox(
-    height: 120,
-    child: ListView.builder(
-      scrollDirection: Axis.horizontal,
-      physics: const BouncingScrollPhysics(),
-      itemCount: vendors.length,
-      itemBuilder: (context, index) {
-        final vendor = vendors[index];
-        return GestureDetector(
-          onTap: () {
-            // Navigate to the training screen when a language card is clicked
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => TrainingScreen(
-                  language: vendor['name'] as String,
-                  languageColor: vendor['color'] as Color,
-                  languageBgColor: vendor['bgColor'] as Color,
+  Widget _buildVendorsList(bool isDarkMode) {
+    final List<Map<String, dynamic>> vendors = [
+      {
+        'name': 'HTML',
+        'logo': 'assets/images/home/html.png',
+        'color': const Color(0xFFE44D26),
+        'bgColor': const Color(0xFFFFEBEE),
+      },
+      {
+        'name': 'CSS',
+        'logo': 'assets/images/home/css.png',
+        'color': const Color(0xFF264DE4),
+        'bgColor': const Color(0xFFE3F2FD),
+      },
+      {
+        'name': 'JavaScript',
+        'logo': 'assets/images/home/js.png',
+        'color': const Color(0xFFF7DF1E),
+        'bgColor': const Color(0xFFFFFDE7),
+      },
+      {
+        'name': 'PHP',
+        'logo': 'assets/images/home/php.png',
+        'color': const Color(0xFF777BB3),
+        'bgColor': const Color(0xFFEDE7F6),
+      },
+      {
+        'name': 'Python',
+        'logo': 'assets/images/home/python.png',
+        'color': const Color(0xFF3776AB),
+        'bgColor': const Color(0xFFE1F5FE),
+      },
+    ];
+    
+    return SizedBox(
+      height: 120,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        itemCount: vendors.length,
+        itemBuilder: (context, index) {
+          final vendor = vendors[index];
+          return GestureDetector(
+            onTap: () {
+              // Navigate to the training screen when a language card is clicked
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => TrainingScreen(
+                    language: vendor['name'] as String,
+                    languageColor: vendor['color'] as Color,
+                    languageBgColor: vendor['bgColor'] as Color,
+                  ),
                 ),
+              );
+            },
+            child: Container(
+              width: 100,
+              margin: EdgeInsets.only(right: index < vendors.length - 1 ? 16 : 0),
+              decoration: BoxDecoration(
+                color: isDarkMode ? const Color(0xFF2A2A2A) : (vendor['bgColor'] as Color),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: isDarkMode ? Colors.grey.shade800 : Colors.transparent,
+                ),
+                boxShadow: isDarkMode
+                    ? []
+                    : [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
               ),
-            );
-          },
-          child: Container(
-            width: 100,
-            margin: EdgeInsets.only(right: index < vendors.length - 1 ? 16 : 0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset(
+                    vendor['logo'] as String,
+                    width: 60,
+                    height: 60,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        width: 60,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          color: vendor['color'] as Color,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: Text(
+                            (vendor['name'] as String).substring(0, 1),
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    vendor['name'] as String,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: isDarkMode ? Colors.white : Colors.black,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+  
+  Widget _buildChallengesList(bool isDarkMode) {
+    final List<Map<String, dynamic>> challenges = [
+      {
+        'name': 'Responsive Portfolio with HTML & CSS',
+        'category': 'HTML',
+        'difficulty': 'Beginner',
+        'participants': 1245,
+        'image': 'assets/images/home/challenge.png',
+        'color': const Color(0xFFE44D26),
+      },
+      {
+        'name': '30-Minute CSS Art Challenge',
+        'category': 'CSS',
+        'difficulty': 'Intermediate',
+        'participants': 876,
+        'image': 'assets/images/home/challenge.png',
+        'color': const Color(0xFF264DE4),
+      },
+      {
+        'name': 'Build a To-Do App in JavaScript',
+        'category': 'JavaScript',
+        'difficulty': 'Intermediate',
+        'participants': 2134,
+        'image': 'assets/images/home/challenge.png',
+        'color': const Color(0xFFF7DF1E),
+      },
+      {
+        'name': 'API Fetch & Display with React',
+        'category': 'React',
+        'difficulty': 'Advanced',
+        'participants': 1567,
+        'image': 'assets/images/home/challenge.png',
+        'color': const Color(0xFF61DAFB),
+      },
+      {
+        'name': 'Create a Calculator in Flutter',
+        'category': 'Flutter',
+        'difficulty': 'Intermediate',
+        'participants': 987,
+        'image': 'assets/images/home/challenge.png',
+        'color': const Color(0xFF54C5F8),
+      },
+    ];
+  
+    return SizedBox(
+      height: 120, // Reduced height
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        itemCount: challenges.length,
+        itemBuilder: (context, index) {
+          final challenge = challenges[index];
+          return Container(
+            width: 220, // Reduced width
+            margin: EdgeInsets.only(right: index < challenges.length - 1 ? 12 : 0),
             decoration: BoxDecoration(
-              color: isDarkMode ? const Color(0xFF2A2A2A) : (vendor['bgColor'] as Color),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: isDarkMode ? Colors.grey.shade800 : Colors.transparent,
-              ),
+              color: isDarkMode ? const Color(0xFF2A2A2A) : Colors.white,
+              borderRadius: BorderRadius.circular(12),
               boxShadow: isDarkMode
                   ? []
                   : [
@@ -899,231 +1307,112 @@ Widget _buildVendorsList(bool isDarkMode) {
                         offset: const Offset(0, 5),
                       ),
                     ],
+              border: Border.all(
+                color: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade200,
+              ),
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset(
-                  vendor['logo'] as String,
-                  width: 60,
-                  height: 60,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      width: 60,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        color: vendor['color'] as Color,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Center(
-                        child: Text(
-                          (vendor['name'] as String).substring(0, 1),
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+            child: Padding(
+              padding: const EdgeInsets.all(10), // Reduced padding
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Top section with icon and title
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 32, // Reduced size
+                        height: 32, // Reduced size
+                        decoration: BoxDecoration(
+                          color: (challenge['color'] as Color).withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Center(
+                          child: Image.asset(
+                            challenge['image'] as String,
+                            width: 20, // Reduced size
+                            height: 20, // Reduced size
+                            errorBuilder: (context, error, stackTrace) {
+                              return Icon(
+                                Icons.code,
+                                color: challenge['color'] as Color,
+                                size: 16, // Reduced size
+                              );
+                            },
                           ),
                         ),
                       ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  vendor['name'] as String,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: isDarkMode ? Colors.white : Colors.black,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    ),
-  );
-}
-
-  
- Widget _buildChallengesList(bool isDarkMode) {
-  final List<Map<String, dynamic>> challenges = [
-    {
-      'name': 'Responsive Portfolio with HTML & CSS',
-      'category': 'HTML',
-      'difficulty': 'Beginner',
-      'participants': 1245,
-      'image': 'assets/images/home/challenge.png',
-      'color': const Color(0xFFE44D26),
-    },
-    {
-      'name': '30-Minute CSS Art Challenge',
-      'category': 'CSS',
-      'difficulty': 'Intermediate',
-      'participants': 876,
-      'image': 'assets/images/home/challenge.png',
-      'color': const Color(0xFF264DE4),
-    },
-    {
-      'name': 'Build a To-Do App in JavaScript',
-      'category': 'JavaScript',
-      'difficulty': 'Intermediate',
-      'participants': 2134,
-      'image': 'assets/images/home/challenge.png',
-      'color': const Color(0xFFF7DF1E),
-    },
-    {
-      'name': 'API Fetch & Display with React',
-      'category': 'React',
-      'difficulty': 'Advanced',
-      'participants': 1567,
-      'image': 'assets/images/home/challenge.png',
-      'color': const Color(0xFF61DAFB),
-    },
-    {
-      'name': 'Create a Calculator in Flutter',
-      'category': 'Flutter',
-      'difficulty': 'Intermediate',
-      'participants': 987,
-      'image': 'assets/images/home/challenge.png',
-      'color': const Color(0xFF54C5F8),
-    },
-  ];
-  
-  return SizedBox(
-    height: 130,
-    child: ListView.builder(
-      scrollDirection: Axis.horizontal,
-      physics: const BouncingScrollPhysics(),
-      itemCount: challenges.length,
-      itemBuilder: (context, index) {
-        final challenge = challenges[index];
-        return Container(
-          width: 240, // Reduced width to prevent overflow
-          margin: EdgeInsets.only(right: index < challenges.length - 1 ? 16 : 0),
-          decoration: BoxDecoration(
-            color: isDarkMode ? const Color(0xFF2A2A2A) : Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: isDarkMode
-                ? []
-                : [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 5),
-                    ),
-                  ],
-            border: Border.all(
-              color: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade200,
-            ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(12), // Reduced padding
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Top section with icon and title
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 40, // Reduced size
-                      height: 40, // Reduced size
-                      decoration: BoxDecoration(
-                        color: (challenge['color'] as Color).withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Center(
-                        child: Image.asset(
-                          challenge['image'] as String,
-                          width: 24, // Reduced size
-                          height: 24, // Reduced size
-                          errorBuilder: (context, error, stackTrace) {
-                            return Icon(
-                              Icons.code,
-                              color: challenge['color'] as Color,
-                              size: 20, // Reduced size
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8), // Reduced spacing
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            challenge['name'] as String,
-                            style: TextStyle(
-                              fontSize: 14, // Reduced font size
-                              fontWeight: FontWeight.bold,
-                              color: isDarkMode ? Colors.white : Colors.black,
+                      const SizedBox(width: 8), // Reduced spacing
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              challenge['name'] as String,
+                              style: TextStyle(
+                                fontSize: 12, // Reduced font size
+                                fontWeight: FontWeight.bold,
+                                color: isDarkMode ? Colors.white : Colors.black,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 4),
-                          Wrap(
-                            spacing: 4, // Reduced spacing
-                            runSpacing: 4, // Added run spacing for wrapping
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), // Reduced padding
-                                decoration: BoxDecoration(
-                                  color: (challenge['color'] as Color).withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(8), // Reduced radius
-                                ),
-                                child: Text(
-                                  challenge['category'] as String,
-                                  style: TextStyle(
-                                    fontSize: 10, // Reduced font size
-                                    fontWeight: FontWeight.bold,
-                                    color: challenge['color'] as Color,
+                            const SizedBox(height: 4),
+                            Wrap(
+                              spacing: 4, // Reduced spacing
+                              runSpacing: 4, // Added run spacing for wrapping
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), // Reduced padding
+                                  decoration: BoxDecoration(
+                                    color: (challenge['color'] as Color).withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(6), // Reduced radius
+                                  ),
+                                  child: Text(
+                                    challenge['category'] as String,
+                                    style: TextStyle(
+                                      fontSize: 8, // Reduced font size
+                                      fontWeight: FontWeight.bold,
+                                      color: challenge['color'] as Color,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), // Reduced padding
-                                decoration: BoxDecoration(
-                                  color: _getDifficultyColor(challenge['difficulty'] as String).withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(8), // Reduced radius
-                                ),
-                                child: Text(
-                                  challenge['difficulty'] as String,
-                                  style: TextStyle(
-                                    fontSize: 10, // Reduced font size
-                                    fontWeight: FontWeight.bold,
-                                    color: _getDifficultyColor(challenge['difficulty'] as String),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), // Reduced padding
+                                  decoration: BoxDecoration(
+                                    color: _getDifficultyColor(challenge['difficulty'] as String).withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(6), // Reduced radius
+                                  ),
+                                  child: Text(
+                                    challenge['difficulty'] as String,
+                                    style: TextStyle(
+                                      fontSize: 8, // Reduced font size
+                                      fontWeight: FontWeight.bold,
+                                      color: _getDifficultyColor(challenge['difficulty'] as String),
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ],
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                
-                // Removed Spacer and added fixed SizedBox height
-                const SizedBox(height: 12), // Reduced space above button
-                
-                // Bottom section with participants and button
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    // Participants count
-                    Flexible(
-                      child: Row(
+                    ],
+                  ),
+                  
+                  const Spacer(),
+                  
+                  // Bottom section with participants and button
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Participants count
+                      Row(
                         mainAxisSize: MainAxisSize.min, // Take minimum space
                         children: [
                           Icon(
                             Icons.people,
-                            size: 14, // Reduced size
+                            size: 12, // Reduced size
                             color: isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600,
                           ),
                           const SizedBox(width: 2), // Reduced spacing
@@ -1137,40 +1426,39 @@ Widget _buildVendorsList(bool isDarkMode) {
                           ),
                         ],
                       ),
-                    ),
-                    // Join Challenge button
-                    SizedBox(
-                      height: 30, // Fixed height
-                      child: ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF54408C),
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8), // Reduced radius
+                      // Join Challenge button
+                      SizedBox(
+                        height: 24, // Fixed height
+                        child: ElevatedButton(
+                          onPressed: () {},
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF54408C),
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(6), // Reduced radius
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0), // Reduced padding
                           ),
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0), // Reduced padding
-                        ),
-                        child: const Text(
-                          'Join Challenge',
-                          style: TextStyle(
-                            fontSize: 10, // Reduced font size
-                            fontWeight: FontWeight.bold,
+                          child: const Text(
+                            'Join Challenge',
+                            style: TextStyle(
+                              fontSize: 9, // Reduced font size
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        );
-      },
-    ),
-  );
-}
+          );
+        },
+      ),
+    );
+  }
   
   Color _getDifficultyColor(String difficulty) {
     switch (difficulty) {

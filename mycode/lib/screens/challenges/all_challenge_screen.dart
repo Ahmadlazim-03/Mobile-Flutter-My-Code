@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/theme_provider.dart';
+import '../../widgets/custom_buttom_nav_bar.dart';
 import 'challenge_detail_screen.dart';
 
 class AllChallengeScreen extends StatefulWidget {
@@ -560,6 +561,11 @@ class _AllChallengeScreenState extends State<AllChallengeScreen> with SingleTick
             ),
           ),
         ],
+      ),
+      bottomNavigationBar: CustomBottomNavBar(
+        currentIndex: 1, // Set to 1 for Challenges tab
+        context: context,
+        isDarkMode: isDarkMode,
       ),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: const Color(0xFF54408C),
