@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:pocketbase/pocketbase.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../home/home_screen.dart';
 import 'sign_up_screen.dart';
 import 'forgot_password/forgot_password_screen.dart';
+
+// Initialize PocketBase client
+final pb = PocketBase('https://ahmadlazim.works');
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({Key? key}) : super(key: key);
@@ -13,15 +18,82 @@ class SignInScreen extends StatefulWidget {
 
 class _SignInScreenState extends State<SignInScreen> {
   bool _obscurePassword = true;
-  
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  String _errorMessage = '';
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _login() async {
+    if (_emailController.text.trim().isEmpty || _passwordController.text.trim().isEmpty) {
+      setState(() {
+        _errorMessage = 'Email and password are required.';
+      });
+      return;
+    }
+
+    try {
+      // Authenticate with email and password using PocketBase
+      final authData = await pb.collection('users').authWithPassword(
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
+      );
+
+      // If successful, navigate to HomeScreen
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
+      );
+    } catch (e) {
+      // Check if the error is related to invalid credentials
+      if (e.toString().contains('ClientException') && e.toString().contains('Failed to authenticate')) {
+        setState(() {
+          _errorMessage = 'Account not found. Please sign up or check your credentials.';
+        });
+      } else {
+        setState(() {
+          _errorMessage = 'Login failed: ${e.toString()}';
+        });
+      }
+    }
+  }
+
+  Future<void> _authWithOAuth2(String provider) async {
+    try {
+      // Perform OAuth2 authentication
+      final authData = await pb.collection('users').authWithOAuth2(provider, (url) async {
+        // Launch the OAuth2 provider's authorization URL in a browser
+        if (await canLaunchUrl(url)) {
+          await launchUrl(url, mode: LaunchMode.externalApplication);
+        } else {
+          setState(() {
+            _errorMessage = 'Could not launch $url';
+          });
+        }
+      });
+
+      // If successful, navigate to HomeScreen
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
+      );
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'OAuth2 failed: ${e.toString()}';
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Set status bar to dark icons on white background
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.dark,
     ));
-    
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -31,7 +103,6 @@ class _SignInScreenState extends State<SignInScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Back button
                 IconButton(
                   icon: const Icon(Icons.arrow_back, size: 28),
                   padding: EdgeInsets.zero,
@@ -40,10 +111,7 @@ class _SignInScreenState extends State<SignInScreen> {
                     Navigator.pop(context);
                   },
                 ),
-                
                 const SizedBox(height: 32),
-                
-                // Welcome back heading
                 Row(
                   children: const [
                     Text(
@@ -62,10 +130,7 @@ class _SignInScreenState extends State<SignInScreen> {
                     ),
                   ],
                 ),
-                
                 const SizedBox(height: 8),
-                
-                // Subtitle
                 const Text(
                   'Sign to your account',
                   style: TextStyle(
@@ -73,10 +138,15 @@ class _SignInScreenState extends State<SignInScreen> {
                     color: Colors.grey,
                   ),
                 ),
-                
+                if (_errorMessage.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 16),
+                    child: Text(
+                      _errorMessage,
+                      style: const TextStyle(color: Colors.red, fontSize: 14),
+                    ),
+                  ),
                 const SizedBox(height: 40),
-                
-                // Email field
                 const Text(
                   'Email',
                   style: TextStyle(
@@ -87,6 +157,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 ),
                 const SizedBox(height: 8),
                 TextField(
+                  controller: _emailController,
                   decoration: InputDecoration(
                     hintText: 'Your email',
                     hintStyle: TextStyle(color: Colors.grey.shade400),
@@ -96,14 +167,12 @@ class _SignInScreenState extends State<SignInScreen> {
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide.none,
                     ),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                   ),
                   keyboardType: TextInputType.emailAddress,
                 ),
-                
                 const SizedBox(height: 24),
-                
-                // Password field
                 const Text(
                   'Password',
                   style: TextStyle(
@@ -114,6 +183,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 ),
                 const SizedBox(height: 8),
                 TextField(
+                  controller: _passwordController,
                   obscureText: _obscurePassword,
                   decoration: InputDecoration(
                     hintText: 'Your password',
@@ -124,7 +194,8 @@ class _SignInScreenState extends State<SignInScreen> {
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide.none,
                     ),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscurePassword ? Icons.visibility_off : Icons.visibility,
@@ -138,15 +209,11 @@ class _SignInScreenState extends State<SignInScreen> {
                     ),
                   ),
                 ),
-                
                 const SizedBox(height: 16),
-                
-                // Forgot password - UPDATED to navigate to ForgotPasswordScreen
                 Align(
                   alignment: Alignment.centerLeft,
                   child: TextButton(
                     onPressed: () {
-                      // Navigate to forgot password screen
                       Navigator.of(context).push(
                         MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
                       );
@@ -166,20 +233,12 @@ class _SignInScreenState extends State<SignInScreen> {
                     ),
                   ),
                 ),
-                
                 const SizedBox(height: 32),
-                
-                // Login button
                 SizedBox(
                   width: double.infinity,
                   height: 56,
                   child: ElevatedButton(
-                    onPressed: () {
-                      // Navigate to home screen on login
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(builder: (_) => const HomeScreen()),
-                      );
-                    },
+                    onPressed: _login,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF54408C),
                       foregroundColor: Colors.white,
@@ -196,10 +255,7 @@ class _SignInScreenState extends State<SignInScreen> {
                     ),
                   ),
                 ),
-                
                 const SizedBox(height: 24),
-                
-                // Don't have an account
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -212,7 +268,6 @@ class _SignInScreenState extends State<SignInScreen> {
                     ),
                     TextButton(
                       onPressed: () {
-                        // Navigate to sign up screen
                         Navigator.of(context).push(
                           MaterialPageRoute(builder: (_) => const SignUpScreen()),
                         );
@@ -233,10 +288,7 @@ class _SignInScreenState extends State<SignInScreen> {
                     ),
                   ],
                 ),
-                
                 const SizedBox(height: 32),
-                
-                // Or with divider
                 Row(
                   children: [
                     Expanded(
@@ -263,11 +315,7 @@ class _SignInScreenState extends State<SignInScreen> {
                     ),
                   ],
                 ),
-                
                 const SizedBox(height: 32),
-                
-                // Social sign in buttons
-                // Google
                 SizedBox(
                   width: double.infinity,
                   height: 56,
@@ -276,7 +324,8 @@ class _SignInScreenState extends State<SignInScreen> {
                       'assets/images/google.png',
                       width: 24,
                       height: 24,
-                      errorBuilder: (context, error, stackTrace) => const Icon(Icons.g_mobiledata, size: 24),
+                      errorBuilder: (context, error, stackTrace) =>
+                          const Icon(Icons.g_mobiledata, size: 24),
                     ),
                     label: const Text(
                       'Sign in with Google',
@@ -286,9 +335,7 @@ class _SignInScreenState extends State<SignInScreen> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    onPressed: () {
-                      // Handle Google sign in
-                    },
+                    onPressed: () => _authWithOAuth2('google'),
                     style: OutlinedButton.styleFrom(
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(28),
@@ -297,10 +344,7 @@ class _SignInScreenState extends State<SignInScreen> {
                     ),
                   ),
                 ),
-                
                 const SizedBox(height: 16),
-                
-                // Apple
                 SizedBox(
                   width: double.infinity,
                   height: 56,
@@ -309,7 +353,8 @@ class _SignInScreenState extends State<SignInScreen> {
                       'assets/images/apple.png',
                       width: 24,
                       height: 24,
-                      errorBuilder: (context, error, stackTrace) => const Icon(Icons.apple, size: 24),
+                      errorBuilder: (context, error, stackTrace) =>
+                          const Icon(Icons.apple, size: 24),
                     ),
                     label: const Text(
                       'Sign in with Apple',
@@ -319,9 +364,7 @@ class _SignInScreenState extends State<SignInScreen> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    onPressed: () {
-                      // Handle Apple sign in
-                    },
+                    onPressed: () => _authWithOAuth2('apple'),
                     style: OutlinedButton.styleFrom(
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(28),

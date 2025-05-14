@@ -117,7 +117,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     );
                   } else {
                     Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (_) => const HomeScreen()),
+                      MaterialPageRoute(builder: (_) => const SignInScreen()),
                     );
                   }
                 },

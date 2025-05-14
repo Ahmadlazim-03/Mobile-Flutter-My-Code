@@ -1,7 +1,7 @@
 // lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-// import 'screens/splash/splash_screen.dart';
+import 'screens/splash/splash_screen.dart';
 import 'providers/theme_provider.dart';
 import 'package:mycode/screens/home/home_screen.dart';
 
@@ -49,7 +49,7 @@ class MyApp extends StatelessWidget {
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-      home: const HomeScreen(),
+      home: const SplashScreen(),
     );
   }
 }
